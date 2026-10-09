@@ -1,0 +1,30 @@
+{
+  "ranked_eligible_candidates": [],
+  "rejected_candidates": [],
+  "failed_resumes": [
+    {
+      "filename": "resume1.pdf",
+      "status": "no_text",
+      "failure_stage": "pdf_parsing",
+      "error_message": "The PDF document has 0 pages."
+    }
+  ],
+  "duplicates": [
+    {
+      "filename": "resume2.pdf",
+      "original_filename": "resume1.pdf",
+      "file_hash": "40c91fd30074283f5e657b08721cd83be57b09ced28685e4ff9c08eefbc197df"
+    }
+  ],
+  "batch_summary": {
+    "total_resumes": 2,
+    "successfully_parsed": 0,
+    "eligible": 0,
+    "rejected": 0,
+    "failed_or_unreadable": 1,
+    "duplicates": 1,
+    "highest_score": null,
+    "lowest_score": null,
+    "average_score": null
+  }
+}
