@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AI Resume Screening System - Automated, evidence-based batch screening and candidate ranking for SDE Intern positions.">
+    <title>AI Resume Screening System</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Top Navigation / Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-badge">SDE INTERN SCREENING</div>
+                    <h1 class="brand-title">AI Resume Screening System</h1>
+                    <p class="brand-description">
+                        An automated, evidence-based candidate screening pipeline designed to process batches of
+                        resumes, evaluate Python and AI engineering depth, and rank qualified talent fairly.
+                    </p>
+                </div>
+                <div class="header-meta">
+                    <span class="version-tag">Phase 4: Scoring &amp; Ranking</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- System Health & Connectivity Card -->
+            <section class="card status-card" aria-labelledby="status-heading">
+                <div class="card-header">
+                    <div>
+                        <h2 id="status-heading" class="card-title">Backend Connectivity</h2>
+                        <p class="card-subtitle">Verify communication with the FastAPI screening engine</p>
+                    </div>
+                    <div id="status-badge" class="status-badge status-idle">
+                        <span class="status-dot"></span>
+                        <span id="status-text">Not Checked</span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <p class="status-explanation">
+                        The web dashboard communicates with the backend REST API to perform parsing, eligibility
+                        validation, and scoring. Use the trigger below to test connectivity to the health check
+                        endpoint.
+                    </p>
+
+                    <div class="action-row">
+                        <button id="check-connection-btn" class="btn btn-primary" type="button">
+                            <span id="btn-spinner" class="spinner hidden" aria-hidden="true"></span>
+                            <span id="btn-text">Check Backend Connection</span>
+                        </button>
+                        <span id="latency-display" class="latency-text hidden"></span>
+                    </div>
+
+                    <!-- Connection Response / Alert Box -->
+                    <div id="connection-feedback" class="feedback-box hidden" role="status" aria-live="polite">
+                        <div class="feedback-header">
+                            <span id="feedback-icon" class="feedback-icon"></span>
+                            <span id="feedback-title" class="feedback-title"></span>
+                        </div>
+                        <p id="feedback-message" class="feedback-message"></p>
+                        <div id="feedback-details-container" class="feedback-details-container hidden">
+                            <label class="details-label">Backend Response:</label>
+                            <pre id="feedback-raw-json" class="raw-json-block"></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Batch PDF Upload and Extraction Card -->
+            <section class="card upload-card" aria-labelledby="upload-heading">
+                <div class="card-header">
+                    <div>
+                        <h2 id="upload-heading" class="card-title">Batch Resume Upload & Text Extraction</h2>
+                        <p class="card-subtitle">Upload up to 50 PDF resumes to extract and verify text content with
+                            PyMuPDF</p>
+                    </div>
+                    <div class="batch-limits-badge">
+                        Max 50 Files &bull; 10MB each
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Dropzone -->
+                    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload PDF resumes">
+                        <input type="file" id="pdf-file-input" class="file-input-hidden" multiple accept=".pdf">
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">📄</div>
+                            <div class="dropzone-text">
+                                <strong>Choose PDF resumes</strong> or drag and drop files here
+                            </div>
+                            <div class="dropzone-hint">Select one or multiple PDF documents (up to 50 files)</div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Files Queue -->
+                    <div id="selected-files-container" class="selected-files-container hidden">
+                        <div class="selected-header">
+                            <span id="selected-count-text" class="selected-count-text">0 files selected</span>
+                            <button type="button" id="clear-files-btn" class="btn btn-secondary btn-sm">Clear
+                                Selection</button>
+                        </div>
+                        <ul id="selected-files-list" class="selected-files-list" aria-label="Selected PDF files"></ul>
+                    </div>
+
+                    <!-- Upload Action Row -->
+                    <!-- Mode Toggle Buttons -->
+                    <div class="mode-toggle-row">
+                        <button type="button" id="mode-rank-btn" class="btn btn-primary mode-btn mode-btn-active" title="Score, enrich GitHub, and rank candidates">
+                            🏆 Screen &amp; Rank
+                        </button>
+                        <button type="button" id="mode-screen-btn" class="btn btn-secondary mode-btn" title="Extract + Eligibility only">
+                            🔍 Screen Resumes
+                        </button>
+                    </div>
+
+                    <div class="upload-action-row">
+                        <button type="button" id="upload-btn" class="btn btn-primary" disabled>
+                            <span id="upload-spinner" class="spinner hidden" aria-hidden="true"></span>
+                            <span id="upload-btn-text">Screen &amp; Rank Resumes</span>
+                        </button>
+                        <span id="upload-status-note" class="status-note">Select one or more PDF files to begin</span>
+                    </div>
+
+                    <!-- Upload Error Box -->
+                    <div id="upload-alert" class="feedback-box error hidden" role="alert" aria-live="assertive">
+                        <div class="feedback-header">
+                            <span class="feedback-icon">✗</span>
+                            <span id="upload-alert-title" class="feedback-title">Upload Error</span>
+                        </div>
+                        <p id="upload-alert-message" class="feedback-message"></p>
+                    </div>
+
+                    <!-- Extraction Results Container -->
+                    <div id="results-container" class="results-container hidden" aria-live="polite">
+                        <div class="results-header">
+                            <h3 class="results-heading">Extraction Results</h3>
+                            <button type="button" id="clear-results-btn" class="btn btn-secondary btn-sm">Clear Results</button>
+                        </div>
+
+                        <!-- Summary Metrics Grid -->
+                        <div class="summary-metrics-grid">
+                            <div class="metric-card metric-total">
+                                <span class="metric-num" id="summary-total">0</span>
+                                <span class="metric-label">Total Files</span>
+                            </div>
+                            <div class="metric-card metric-success">
+                                <span class="metric-num" id="summary-success">0</span>
+                                <span class="metric-label">Parsed</span>
+                            </div>
+                            <div class="metric-card metric-eligible">
+                                <span class="metric-num" id="summary-eligible">0</span>
+                                <span class="metric-label">Eligible</span>
+                            </div>
+                            <div class="metric-card metric-ineligible">
+                                <span class="metric-num" id="summary-ineligible">0</span>
+                                <span class="metric-label">Ineligible</span>
+                            </div>
+                            <div class="metric-card metric-warning">
+                                <span class="metric-num" id="summary-notext">0</span>
+                                <span class="metric-label">No Text</span>
+                            </div>
+                            <div class="metric-card metric-danger">
+                                <span class="metric-num" id="summary-failed">0</span>
+                                <span class="metric-label">Failed</span>
+                            </div>
+                        </div>
+
+                        <!-- Per-File Results List -->
+                        <div id="per-file-results-list" class="per-file-results-list"></div>
+                    </div>
+
+                    <!-- ============================================================ -->
+                    <!-- Phase 4: Ranked Report Container (hidden until /report used) -->
+                    <!-- ============================================================ -->
+                    <div id="ranked-report-container" class="ranked-report-container hidden" aria-live="polite">
+                        <div class="report-header">
+                            <div>
+                                <h3 class="results-heading">🏆 Ranked Candidate Report</h3>
+                                <div class="report-stats" id="report-stats-bar"></div>
+                            </div>
+                            <button type="button" id="clear-ranked-btn" class="btn btn-secondary btn-sm">Clear Report</button>
+                        </div>
+
+                        <!-- Ranked candidates leaderboard -->
+                        <div id="ranked-candidates-list" class="ranked-section"></div>
+
+                        <!-- Rejected candidates section -->
+                        <details id="rejected-section" class="collapsible-section hidden">
+                            <summary class="collapsible-summary">❌ Rejected Candidates</summary>
+                            <div id="rejected-candidates-list" class="rejected-section"></div>
+                        </details>
+
+                        <!-- Failed files section -->
+                        <details id="failed-section" class="collapsible-section hidden">
+                            <summary class="collapsible-summary">⚠️ Failed / Unreadable Files</summary>
+                            <div id="failed-files-list" class="failed-section"></div>
+                        </details>
+
+                        <!-- Duplicates section -->
+                        <details id="duplicates-section" class="collapsible-section hidden">
+                            <summary class="collapsible-summary">🔁 Duplicate Files (Quarantined)</summary>
+                            <div id="duplicates-files-list" class="failed-section"></div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Planned Pipeline Workflow Card -->
+            <section class="card pipeline-card" aria-labelledby="pipeline-heading">
+                <div class="card-header">
+                    <div>
+                        <h2 id="pipeline-heading" class="card-title">Screening Pipeline Roadmap</h2>
+                        <p class="card-subtitle">Overview of the multi-stage evaluation engine</p>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="pipeline-grid">
+                        <!-- Step 1 -->
+                        <div class="pipeline-step step-active">
+                            <div class="step-num">01</div>
+                            <div class="step-content">
+                                <h3 class="step-title">Batch PDF Upload & Extraction</h3>
+                                <p class="step-desc">Accept up to 50 PDF resumes in a single batch with independent
+                                    error handling and text extraction.</p>
+                                <span class="step-tag tag-active">Phase 2: Complete</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="pipeline-step step-active">
+                            <div class="step-num">02</div>
+                            <div class="step-content">
+                                <h3 class="step-title">Candidate Information Extraction</h3>
+                                <p class="step-desc">Extract structured candidate profile: name, email, skills,
+                                    education, experience, and GitHub username.</p>
+                                <span class="step-tag tag-active">Phase 3: Live</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="pipeline-step step-active">
+                            <div class="step-num">03</div>
+                            <div class="step-content">
+                                <h3 class="step-title">Hard Eligibility Verification</h3>
+                                <p class="step-desc">Deterministic verification of Python evidence AND meaningful AI
+                                    project experience.</p>
+                                <span class="step-tag tag-active">Phase 3: Complete</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="pipeline-step step-active">
+                            <div class="step-num">04</div>
+                            <div class="step-content">
+                                <h3 class="step-title">Rubric Scoring &amp; GitHub Enrichment</h3>
+                                <p class="step-desc">Score eligible candidates out of 100 points and enrich profiles
+                                    with public GitHub activity.</p>
+                                <span class="step-tag tag-active">Phase 4: Live</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="pipeline-step step-active">
+                            <div class="step-num">05</div>
+                            <div class="step-content">
+                                <h3 class="step-title">Ranked Dashboard &amp; Report Export</h3>
+                                <p class="step-desc">Deliver sorted candidates with full transparent score breakdowns,
+                                    evidence, and exportable reports.</p>
+                                <span class="step-tag tag-active">Phase 4: Live</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Application Footer -->
+        <footer class="app-footer">
+            <p>AI Resume Screening System &bull; SDE Intern Evaluation Project</p>
+            <div class="footer-links">
+                <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer">FastAPI Swagger Docs</a>
+                <span class="separator">&bull;</span>
+                <a href="http://127.0.0.1:8000/health" target="_blank" rel="noopener noreferrer">Direct /health
+                    Endpoint</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+</body>
+
+</html>
